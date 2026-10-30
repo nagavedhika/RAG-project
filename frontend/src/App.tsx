@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
+import { Features } from './components/Features';
+import { Architecture } from './components/Architecture';
 import { Playground } from './components/Playground';
 import { KnowledgeGraph } from './components/KnowledgeGraph';
 import { Footer } from './components/Footer';
 
 export function App() {
-  const [currentView, setCurrentView] = useState<'chat' | 'graph'>('chat');
+  const [currentView, setCurrentView] = useState<'chat' | 'graph' | 'overview'>('chat');
   const [documents, setDocuments] = useState<string[]>([]);
   const [activeDoc, setActiveDoc] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] = useState<string>('openai/gpt-oss-120b');
@@ -49,23 +51,13 @@ export function App() {
     setActiveDoc(docName);
   };
 
-  const scrollToPlayground = () => {
-    const el = document.getElementById('playground');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   const handleQueryInChat = (query: string) => {
     setInjectedPrompt(query);
     setCurrentView('chat');
-    setTimeout(() => {
-      scrollToPlayground();
-    }, 150);
   };
 
   return (
-    <div className="min-h-screen bg-[#050507] text-[#f5f5f7] flex flex-col font-sans selection:bg-white/20 selection:text-white">
+    <div className="h-screen w-screen bg-[#050507] text-[#f5f5f7] flex flex-col font-sans selection:bg-white/20 selection:text-white overflow-hidden">
       {/* Sticky Clean Minimal Navbar with View Switcher */}
       <Navbar
         hasKey={hasKey}
@@ -73,7 +65,7 @@ export function App() {
         onSelectView={(view) => setCurrentView(view)}
       />
 
-      <main className="flex-1">
+      <main className="flex-1 min-h-0 relative overflow-hidden">
         {/* Knowledge Graph View */}
         {currentView === 'graph' && (
           <KnowledgeGraph
@@ -84,15 +76,11 @@ export function App() {
           />
         )}
 
-        {/* Playground / Chat View (Preserved via display styling to never lose messages) */}
-        <div style={{ display: currentView === 'chat' ? 'block' : 'none' }}>
-          {/* Cinematic Hero */}
-          <Hero
-            onScrollToPlayground={scrollToPlayground}
-            documentCount={documents.length}
-          />
-
-          {/* Interactive RAG Playground */}
+        {/* Playground / Chat View (Preserved via display styling to maintain chat state and message history) */}
+        <div
+          className="h-full w-full"
+          style={{ display: currentView === 'chat' ? 'block' : 'none' }}
+        >
           <Playground
             documents={documents}
             activeDoc={activeDoc}
@@ -106,10 +94,20 @@ export function App() {
             onClearInjectedPrompt={() => setInjectedPrompt(null)}
           />
         </div>
-      </main>
 
-      {/* Understated Clean Footer */}
-      {currentView === 'chat' && <Footer />}
+        {/* Overview & Architecture Marketing Landing View */}
+        {currentView === 'overview' && (
+          <div className="h-full w-full overflow-y-auto">
+            <Hero
+              onScrollToPlayground={() => setCurrentView('chat')}
+              documentCount={documents.length}
+            />
+            <Features />
+            <Architecture />
+            <Footer />
+          </div>
+        )}
+      </main>
     </div>
   );
 }

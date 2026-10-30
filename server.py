@@ -147,12 +147,20 @@ def get_status():
     }
 
 @app.get("/api/graph")
-def get_knowledge_graph(document_name: Optional[str] = None):
+def get_knowledge_graph(document_name: Optional[str] = None, force_refresh: bool = False):
     try:
-        data = build_knowledge_graph(PERSIST_BASE_DIR, target_doc=document_name)
+        data = build_knowledge_graph(PERSIST_BASE_DIR, target_doc=document_name, force_refresh=force_refresh)
         return data
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to build graph: {str(e)}")
+
+@app.post("/api/graph/refresh")
+def refresh_knowledge_graph(document_name: Optional[str] = None):
+    try:
+        data = build_knowledge_graph(PERSIST_BASE_DIR, target_doc=document_name, force_refresh=True)
+        return data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to refresh graph: {str(e)}")
 
 @app.post("/api/upload")
 async def upload_pdf(file: UploadFile = File(...)):
